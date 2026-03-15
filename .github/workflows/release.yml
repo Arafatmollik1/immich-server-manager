@@ -50,11 +50,13 @@ jobs:
       - name: Build and Publish Tauri App
         uses: tauri-apps/tauri-action@v0
         env:
+          NO_STRIP: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__
-          releaseName: "Immich Server Manager v__VERSION__"
+          tagName: ${{ github.ref_name }}
+          releaseName: "Immich Server Manager ${{ github.ref_name }}"
           releaseBody: "See the assets below to download the app for your operating system."
           releaseDraft: true
           prerelease: false
+          uploadReleaseAssets: true
           args: ${{ matrix.args }}
