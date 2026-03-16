@@ -37,12 +37,16 @@ jobs:
           node-version: "lts/*"
 
       - name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Add Rust targets (Mac only)
+        if: matrix.platform == 'macos-latest'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
 
       - name: Install frontend dependencies
         run: pnpm install
@@ -50,13 +54,12 @@ jobs:
       - name: Build and Publish Tauri App
         uses: tauri-apps/tauri-action@v0
         env:
-          NO_STRIP: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPIMAGE_EXTRACT_AND_RUN: 1
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Immich Server Manager ${{ github.ref_name }}"
           releaseBody: "See the assets below to download the app for your operating system."
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
-          uploadReleaseAssets: true
           args: ${{ matrix.args }}
