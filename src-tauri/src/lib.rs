@@ -130,6 +130,21 @@ fn check_server_status() -> Result<bool, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // 🔥 THE MACOS PATH FIX 🔥
+    // This tells Apple to stop hiding the Homebrew and Docker folders from our app
+    #[cfg(target_os = "macos")]
+    {
+        let current_path = std::env::var("PATH").unwrap_or_default();
+        let mut new_path = format!("{}:/usr/local/bin:/opt/homebrew/bin", current_path);
+        
+        // Also add the new Docker Desktop specific folder (~/.docker/bin)
+        if let Some(home) = dirs::home_dir() {
+            let docker_bin = home.join(".docker/bin");
+            new_path = format!("{}:{}", new_path, docker_bin.to_string_lossy());
+        }
+        std::env::set_var("PATH", new_path);
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
